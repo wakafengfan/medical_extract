@@ -171,7 +171,7 @@ def extract_items(text_in):
     for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
         r = text_in[ts.start(): ts.end()]
         r = ''.join(r)
-        result.append((r, ts.start(), trans_list[int(ts.group()[0])].split('_')[-1]))
+        result.append((r, str(ts.start()), trans_list[int(ts.group()[0])].split('_')[-1]))
 
     return result
 
