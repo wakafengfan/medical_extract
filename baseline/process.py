@@ -1,8 +1,12 @@
+import json
 import random
 from pathlib import Path
 import numpy as np
 from configuration.config import data_dir
 from collections import Counter
+
+from configuration.dic import sub_dic
+
 text, label = [[]], [[]]
 
 
@@ -64,7 +68,7 @@ print(Counter(col))
 e_cnt = [len([t for t in ts if "B" in t]) for ts in label_new]
 print(Counter(e_cnt))
 
-
+label_new = [[sub_dic[l] for l in ls] for ls in label_new]
 t_l = [(t,l) for t, l in zip(text_new, label_new)]
 dev = random.sample(t_l, k=5000)
 train = [k for k in t_l if k not in dev]
@@ -85,6 +89,8 @@ print(Counter(dev_e_cnt))
 train_e_cnt = [len([t for t in ts if "B" in t]) for ts in train_l]
 print(Counter(train_e_cnt))
 
+json.dump(dev, (Path(data_dir)/'dev.json').open('w'), ensure_ascii=False)
+json.dump(train, (Path(data_dir)/'train.json').open('w'), ensure_ascii=False)
 
 print('Done')
 
