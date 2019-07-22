@@ -114,11 +114,11 @@ subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_
 subject_model.to(device)
 
 n_gpu = torch.cuda.device_count()
-if n_gpu > 1:
-    torch.cuda.manual_seed_all(42)
-
-    logger.info(f'let us use {n_gpu} gpu')
-    subject_model = torch.nn.DataParallel(subject_model)
+# if n_gpu > 1:
+#     torch.cuda.manual_seed_all(42)
+#
+#     logger.info(f'let us use {n_gpu} gpu')
+#     subject_model = torch.nn.DataParallel(subject_model)
 
 
 # optim
@@ -187,15 +187,15 @@ for epoch in range(epoch_num):
 
     for batch in train_D:
         batch_idx += 1
-        # if batch_idx > 1:
-        #     break
+        if batch_idx > 1:
+            break
 
         batch = tuple(t.to(device) if i<len(batch)-1 else t for i,t in enumerate(batch))
         X, S, X_MASK, X_SEG,X_Len = batch
         loss = subject_model(X, X_SEG, X_MASK, X_Len, S)
 
-        if n_gpu > 1:
-            loss = loss.mean()
+        # if n_gpu > 1:
+        #     loss = loss.mean()
 
         loss.backward()
 

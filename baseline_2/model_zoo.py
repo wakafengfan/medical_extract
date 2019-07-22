@@ -45,7 +45,7 @@ class SubjectModel(BertPreTrainedModel):
         x1_encoder_layers, _ = self.bert(x_ids, x_segments, x_mask, output_all_encoded_layers=False)
         ps = F.softmax(self.linear(x1_encoder_layers), dim=-1)
 
-        if self.train():
+        if self.training:
             loss = self.calculate_loss(ps, lengths, tags)
             return loss
         else:
