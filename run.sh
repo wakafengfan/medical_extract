@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd insurance_bot
+cd medical_extract
 export PYTHONPATH="."
 export ROOT_DIR="root"
 
