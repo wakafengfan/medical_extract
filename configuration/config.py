@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 if os.environ.get("ROOT_DIR"):
-    ROOT_PATH = "/root/insurance_bot"
+    ROOT_PATH = "/root/medical_extract"
 else:
     ROOT_PATH = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), ".."))
 
