@@ -41,11 +41,16 @@ class SubjectModel(BertPreTrainedModel):
 
         self.apply(self.init_bert_weights)
 
-    def forward(self, x_ids, x_segments, x_mask):
+    def forward(self, x_ids, x_segments, x_mask, lengths, tags=None):
         x1_encoder_layers, _ = self.bert(x_ids, x_segments, x_mask, output_all_encoded_layers=False)
         ps = F.softmax(self.linear(x1_encoder_layers), dim=-1)
 
-        return ps
+        if self.train():
+            loss = self.calculate_loss(ps, lengths, tags)
+            return loss
+        else:
+            pred_tags = self.obtain_labels(ps, lengths)
+            return pred_tags
 
     def _score_sentence(self, feats, tags, lens_):  # tags: [b,s]
 

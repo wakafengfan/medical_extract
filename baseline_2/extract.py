@@ -114,11 +114,11 @@ subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_
 subject_model.to(device)
 
 n_gpu = torch.cuda.device_count()
-# if n_gpu > 1:
-#     torch.cuda.manual_seed_all(42)
-#
-#     logger.info(f'let us use {n_gpu} gpu')
-#     subject_model = torch.nn.DataParallel(subject_model)
+if n_gpu > 1:
+    torch.cuda.manual_seed_all(42)
+
+    logger.info(f'let us use {n_gpu} gpu')
+    subject_model = torch.nn.DataParallel(subject_model)
 
 
 # optim
@@ -192,9 +192,7 @@ for epoch in range(epoch_num):
 
         batch = tuple(t.to(device) if i<len(batch)-1 else t for i,t in enumerate(batch))
         X, S, X_MASK, X_SEG,X_Len = batch
-        pred_s = subject_model(X, X_SEG, X_MASK)
-
-        loss = subject_model.calculate_loss(pred_s, X_Len, S)
+        loss = subject_model(X, X_SEG, X_MASK, X_Len, S)
 
         if n_gpu > 1:
             loss = loss.mean()
@@ -221,8 +219,7 @@ for epoch in range(epoch_num):
             _X_MASK = torch.tensor([_X_MASK], dtype=torch.long, device=device)
             _X_SEG = torch.zeros(*_X.size(), dtype=torch.long, device=device)
 
-            pred_s = subject_model(_X, _X_SEG, _X_MASK)
-            pred_tags = subject_model.obtain_labels(pred_s, _X_Len)[0]
+            pred_tags = subject_model(_X, _X_SEG, _X_MASK, _X_Len)[0]
 
         R = []
         pred_B_idx = [i for i, l in enumerate(pred_tags) if 'B' in l]
