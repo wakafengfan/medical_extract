@@ -113,7 +113,7 @@ subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_
 
 subject_model.to(device)
 
-# n_gpu = torch.cuda.device_count()
+n_gpu = torch.cuda.device_count()
 # if n_gpu > 1:
 #     torch.cuda.manual_seed_all(42)
 #
