@@ -18,7 +18,7 @@ from baseline_2.model_zoo import SubjectModel
 
 hidden_size = 768
 epoch_num = 10
-batch_size = 64
+batch_size = 32
 num_class = len(tag_dictionary)
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
