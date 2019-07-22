@@ -14,7 +14,7 @@ from tqdm import tqdm
 from baseline import device
 from configuration.dic import tag_dictionary, trans, trans_list
 from configuration.config import data_dir, bert_vocab_path, bert_data_path, bert_model_path
-from baseline.model_zoo import SubjectModel
+from baseline_2.model_zoo import SubjectModel
 
 hidden_size = 768
 epoch_num = 10
@@ -86,13 +86,15 @@ class data_generator:
     def __iter__(self):
         idxs = list(range(len(self.data)))
         np.random.shuffle(idxs)
-        X, S, X_MASK = [], [], []
+        X, S, X_MASK, X_Len = [], [], [],[]
         for i in idxs:
             text, label = self.data[i]
 
             x = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in text]
             x_mask = [1] * len(x)
             s = [tag_dictionary[l] for l in label]
+
+            X_Len.append(len(x))
 
             X.append(x)
             S.append(s)
@@ -103,10 +105,8 @@ class data_generator:
                 X_MASK = torch.tensor(seq_padding(X_MASK), dtype=torch.long)
                 X_SEG = torch.zeros(*X.size(), dtype=torch.long)
 
-                yield [X, S, X_MASK, X_SEG]
-                X, S, X_MASK = [], [], []
-
-
+                yield [X, S, X_MASK, X_SEG, X_Len]
+                X, S, X_MASK,X_Len = [], [], [],[]
 
 
 subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_model_path, cache_dir=bert_data_path)
@@ -120,8 +120,6 @@ if n_gpu > 1:
     logger.info(f'let us use {n_gpu} gpu')
     subject_model = torch.nn.DataParallel(subject_model)
 
-# loss
-loss_func = nn.CrossEntropyLoss(ignore_index=0)
 
 # optim
 param_optimizer = list(subject_model.named_parameters())
@@ -142,41 +140,41 @@ optimizer = BertAdam(optimizer_grouped_parameters,
                      t_total=num_train_optimization_steps)
 
 
-zy = {i:np.log(trans[i]) for i in trans}
-
-def viterbi(nodes):
-    paths = nodes[0]
-    for l in range(1,len(nodes)):
-        paths_ = paths.copy()
-        paths = {}
-        for i in nodes[l].keys():
-            nows = {}
-            for j in paths_.keys():
-                if j[-1]+i in zy.keys():
-                    nows[j+i]= paths_[j]+nodes[l][i]+zy[j[-1]+i]
-            k = np.argmax(list(nows.values()))
-            paths[list(nows.keys())[k]] = list(nows.values())[k]
-    return list(paths.keys())[np.argmax(list(paths.values()))]
-
-def extract_items(text_in):
-    _X = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in text_in]
-    _X_MASK = [1] * len(_X)
-    _X = torch.tensor([_X], dtype=torch.long, device=device)
-    _X_MASK = torch.tensor([_X_MASK], dtype=torch.long, device=device)
-    _X_SEG = torch.zeros(*_X.size(), dtype=torch.long, device=device)
-
-    with torch.no_grad():
-        _k = subject_model(_X, _X_SEG, _X_MASK)
-        _k = _k[0, :].detach().cpu().numpy()
-    nodes = [dict(zip(list(map(str, range(9))), k)) for k in np.log(_k)]
-    tags = viterbi(nodes)
-    result = []
-    for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
-        r = text_in[ts.start(): ts.end()]
-        r = ''.join(r)
-        result.append((r, str(ts.start()), trans_list[int(ts.group()[0])].split('_')[-1]))
-
-    return result
+# zy = {i:np.log(trans[i]) for i in trans}
+#
+# def viterbi(nodes):
+#     paths = nodes[0]
+#     for l in range(1,len(nodes)):
+#         paths_ = paths.copy()
+#         paths = {}
+#         for i in nodes[l].keys():
+#             nows = {}
+#             for j in paths_.keys():
+#                 if j[-1]+i in zy.keys():
+#                     nows[j+i]= paths_[j]+nodes[l][i]+zy[j[-1]+i]
+#             k = np.argmax(list(nows.values()))
+#             paths[list(nows.keys())[k]] = list(nows.values())[k]
+#     return list(paths.keys())[np.argmax(list(paths.values()))]
+#
+# def extract_items(text_in):
+#     _X = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in text_in]
+#     _X_MASK = [1] * len(_X)
+#     _X = torch.tensor([_X], dtype=torch.long, device=device)
+#     _X_MASK = torch.tensor([_X_MASK], dtype=torch.long, device=device)
+#     _X_SEG = torch.zeros(*_X.size(), dtype=torch.long, device=device)
+#
+#     with torch.no_grad():
+#         _k = subject_model(_X, _X_SEG, _X_MASK)
+#         _k = _k[0, :].detach().cpu().numpy()
+#     nodes = [dict(zip(list(map(str, range(9))), k)) for k in np.log(_k)]
+#     tags = viterbi(nodes)
+#     result = []
+#     for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
+#         r = text_in[ts.start(): ts.end()]
+#         r = ''.join(r)
+#         result.append((r, str(ts.start()), trans_list[int(ts.group()[0])].split('_')[-1]))
+#
+#     return result
 
 best_score = 0
 best_epoch = 0
@@ -189,14 +187,15 @@ for epoch in range(epoch_num):
 
     for batch in train_D:
         batch_idx += 1
-        if batch_idx > 1:
-            break
+        # if batch_idx > 1:
+        #     break
 
-        batch = tuple(t.to(device) for t in batch)
-        X, S, X_MASK, X_SEG = batch
+        batch = tuple(t.to(device) if i<len(batch)-1 else t for i,t in enumerate(batch))
+        X, S, X_MASK, X_SEG,X_Len = batch
         pred_s = subject_model(X, X_SEG, X_MASK)
 
-        loss = loss_func(pred_s.view(-1, num_class), S.view(-1))
+        loss = subject_model.calculate_loss(pred_s, X_Len, S)
+
         if n_gpu > 1:
             loss = loss.mean()
 
@@ -214,7 +213,29 @@ for epoch in range(epoch_num):
     err_dict = defaultdict(list)
     for eval_idx, d in enumerate(dev_data):
         tt, ll = d
-        R = extract_items(tt)  # set(('高血压','0'))
+        with torch.no_grad():
+            _X = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in tt]
+            _X_Len = [len(_X)]
+            _X_MASK = [1] * len(_X)
+            _X = torch.tensor([_X], dtype=torch.long, device=device)
+            _X_MASK = torch.tensor([_X_MASK], dtype=torch.long, device=device)
+            _X_SEG = torch.zeros(*_X.size(), dtype=torch.long, device=device)
+
+            pred_s = subject_model(_X, _X_SEG, _X_MASK)
+            pred_tags = subject_model.obtain_labels(pred_s, _X_Len)[0]
+
+        R = []
+        pred_B_idx = [i for i, l in enumerate(pred_tags) if 'B' in l]
+        for i in pred_B_idx:
+            e = tt[i]
+            e_n = pred_tags[i]
+            j = i+1
+            while j<len(pred_tags):
+                if pred_tags[j]=='O' or 'B' in pred_tags[j]:
+                    break
+                e += tt[j]
+                j += 1
+            R.append((e,str(i),e_n.split('_')[-1]))
 
         T = []
         B_idx = [i for i, l in enumerate(ll) if 'B' in l]

@@ -1,4 +1,4 @@
-trans_dic = {
+tag_dictionary = {
     'O': 0,
 
     'B_disease': 1,
@@ -11,7 +11,10 @@ trans_dic = {
     'I_symptom': 6,
 
     'B_drug': 7,
-    'I_drug': 8
+    'I_drug': 8,
+
+    '<START>': 9,
+    '<STOP>': 10
 }
 
 trans_list = ['O', 'B_disease', 'I_disease', 'B_diagnosis', 'I_diagnosis', 'B_symptom', 'I_symptom', 'B_drug', 'I_drug']
