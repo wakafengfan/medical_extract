@@ -75,3 +75,30 @@ trans = {
     '85': 0.5,
     '87': 0.5,
 }
+
+
+
+tag_dictionary_start = {
+    'O': 0,
+
+    'B_disease': 1,
+
+    'B_diagnosis': 2,
+
+    'B_symptom': 3,
+
+    'B_drug': 4,
+}
+
+
+tag_dictionary_stopt = {
+    'O': 0,
+
+    'I_disease': 1,
+
+    'I_diagnosis': 2,
+
+    'I_symptom': 3,
+
+    'I_drug': 4,
+}

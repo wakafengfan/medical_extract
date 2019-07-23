@@ -89,8 +89,8 @@ print(Counter(dev_e_cnt))
 train_e_cnt = [len([t for t in ts if "B" in t]) for ts in train_l]
 print(Counter(train_e_cnt))
 
-json.dump(dev, (Path(data_dir)/'dev.json').open('w'), ensure_ascii=False)
-json.dump(train, (Path(data_dir)/'train.json').open('w'), ensure_ascii=False)
+# json.dump(dev, (Path(data_dir)/'dev.json').open('w'), ensure_ascii=False)
+# json.dump(train, (Path(data_dir)/'train.json').open('w'), ensure_ascii=False)
 
 print('Done')
 
