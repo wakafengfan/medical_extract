@@ -13,8 +13,8 @@ tag_dictionary = {
     'B_drug': 7,
     'I_drug': 8,
 
-    '<START>': 9,
-    '<STOP>': 10
+    # '<START>': 9,
+    # '<STOP>': 10
 }
 
 trans_list = ['O', 'B_disease', 'I_disease', 'B_diagnosis', 'I_diagnosis', 'B_symptom', 'I_symptom', 'B_drug', 'I_drug']
