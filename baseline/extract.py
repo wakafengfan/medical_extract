@@ -122,7 +122,7 @@ if n_gpu > 1:
     subject_model = torch.nn.DataParallel(subject_model)
 
 # loss
-loss_func = nn.CrossEntropyLoss(ignore_index=-1)
+loss_func = nn.CrossEntropyLoss(ignore_index=0)
 
 # optim
 param_optimizer = list(subject_model.named_parameters())
