@@ -31,11 +31,6 @@ train_data  = train_data * 10
 dev_data = json.load((Path(data_dir)/'dev.json').open())
 
 
-def seq_padding(X):
-    ML = max(map(len, X))
-    return np.array([list(x) + [0] * (ML - len(x)) for x in X])
-
-
 def load_vocab(vocab_file):
     """Loads a vocabulary file into a dictionary."""
     vocab = collections.OrderedDict()
@@ -52,6 +47,11 @@ def load_vocab(vocab_file):
 
 
 bert_vocab = load_vocab(bert_vocab_path)
+
+
+def seq_padding(X):
+    ML = max(map(len, X))
+    return np.array([list(x) + [0] * (ML - len(x)) for x in X])
 
 # wv_model = gensim.models.KeyedVectors.load(str(Path(data_dir) / 'tencent_embed_for_el2019'))
 # word2vec = wv_model.wv.syn0
@@ -122,7 +122,7 @@ if n_gpu > 1:
     subject_model = torch.nn.DataParallel(subject_model)
 
 # loss
-loss_func = nn.CrossEntropyLoss(ignore_index=0)
+loss_func = nn.CrossEntropyLoss()
 
 # optim
 param_optimizer = list(subject_model.named_parameters())
@@ -197,7 +197,8 @@ for epoch in range(epoch_num):
         X, S, X_MASK, X_SEG = batch
         pred_s = subject_model(X, X_SEG, X_MASK)
 
-        loss = loss_func(pred_s.view(-1, num_class), S.view(-1))
+        active_loss = X_MASK.view(-1) == 1
+        loss = loss_func(pred_s.view(-1, num_class)[active_loss], S.view(-1)[active_loss])
         if n_gpu > 1:
             loss = loss.mean()
 
