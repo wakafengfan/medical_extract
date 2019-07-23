@@ -33,7 +33,7 @@ dev_data = json.load((Path(data_dir)/'dev.json').open())
 
 def seq_padding(X):
     ML = max(map(len, X))
-    return np.array([list(x) + [-1] * (ML - len(x)) for x in X])
+    return np.array([list(x) + [0] * (ML - len(x)) for x in X])
 
 
 def load_vocab(vocab_file):
