@@ -11,6 +11,9 @@ START_TAG: str = "<START>"
 STOP_TAG: str = "<STOP>"
 tagset_size = len(tag_dictionary)
 
+start_idx = tag_dictionary.get(START_TAG)
+stop_idx = tag_dictionary.get(STOP_TAG)
+
 def to_scalar(var):
     return var.view(-1).detach().tolist()[0]
 
@@ -36,8 +39,8 @@ class SubjectModel(BertPreTrainedModel):
         self.transitions = torch.nn.Parameter(
             torch.randn(tagset_size, tagset_size)
         )
-        self.transitions.detach()[tag_dictionary.get(START_TAG), :] = -10000
-        self.transitions.detach()[:, tag_dictionary.get(STOP_TAG)] = -10000
+        self.transitions.detach()[start_idx, :] = -10000
+        self.transitions.detach()[:, stop_idx] = -10000
 
         self.apply(self.init_bert_weights)
 
@@ -54,21 +57,17 @@ class SubjectModel(BertPreTrainedModel):
 
     def _score_sentence(self, feats, tags, lens_):  # tags: [b,s]
 
-        start = torch.tensor(
-            [tag_dictionary.get(START_TAG)], device=device
-        )  # [1]
+        start = torch.tensor([start_idx], device=device)  # [1]
         start = start[None, :].repeat(tags.shape[0], 1)  # [b,1]
 
-        stop = torch.tensor(
-            [tag_dictionary.get(STOP_TAG)], device=device
-        )
+        stop = torch.tensor([stop_idx], device=device)
         stop = stop[None, :].repeat(tags.shape[0], 1)
 
         pad_start_tags = torch.cat([start, tags], 1)
         pad_stop_tags = torch.cat([tags, stop], 1)   # pad_stop_tags: [b,s+1]
 
         for i in range(len(lens_)):
-            pad_stop_tags[i, lens_[i] :] = tag_dictionary.get(STOP_TAG)
+            pad_stop_tags[i, lens_[i] :] = stop_idx
 
         score = torch.FloatTensor(feats.shape[0]).to(device)  # score: [b]
 
@@ -124,28 +123,20 @@ class SubjectModel(BertPreTrainedModel):
         init_vvars = (
             torch.FloatTensor(1, tagset_size).to(device).fill_(-10000.0)
         )
-        init_vvars[0][tag_dictionary.get(START_TAG)] = 0
+        init_vvars[0][start_idx] = 0
         forward_var = init_vvars
 
         for feat in feats:
-            next_tag_var = (
-                forward_var.view(1, -1).expand(tagset_size, tagset_size)
-                + self.transitions
-            )
+            next_tag_var = forward_var.view(1, -1).expand(tagset_size, tagset_size) + self.transitions
             _, bptrs_t = torch.max(next_tag_var, dim=1)
             viterbivars_t = next_tag_var[range(len(bptrs_t)), bptrs_t]
             forward_var = viterbivars_t + feat
             backscores.append(forward_var)
             backpointers.append(bptrs_t)
 
-        terminal_var = (
-            forward_var
-            + self.transitions[tag_dictionary.get(STOP_TAG)]
-        )
-        terminal_var.detach()[tag_dictionary.get(STOP_TAG)] = -10000.0
-        terminal_var.detach()[
-            tag_dictionary.get(START_TAG)
-        ] = -10000.0
+        terminal_var = forward_var + self.transitions[stop_idx]
+        terminal_var.detach()[stop_idx] = -10000.0
+        terminal_var.detach()[start_idx] = -10000.0
         best_tag_id = argmax(terminal_var.unsqueeze(0))
 
         best_path = [best_tag_id]
@@ -172,14 +163,14 @@ class SubjectModel(BertPreTrainedModel):
         )
 
         start = best_path.pop()
-        assert start == tag_dictionary.get(START_TAG)
+        assert start == start_idx
         best_path.reverse()
         return best_scores, best_path, scores
 
     def _forward_alg(self, feats, lens_):  # [b,s,tag_size]
 
         init_alphas = torch.FloatTensor(tagset_size).fill_(-10000.0)  # [tag_size]
-        init_alphas[tag_dictionary.get(START_TAG)] = 0.0
+        init_alphas[start_idx] = 0.0
 
         forward_var = torch.zeros(
             feats.shape[0],
@@ -221,9 +212,7 @@ class SubjectModel(BertPreTrainedModel):
 
         forward_var = forward_var[range(forward_var.shape[0]), lens_, :]
 
-        terminal_var = forward_var + self.transitions[
-            tag_dictionary.get(STOP_TAG)
-        ][None, :].repeat(forward_var.shape[0], 1)
+        terminal_var = forward_var + self.transitions[stop_idx][None, :].repeat(forward_var.shape[0], 1)
 
         alpha = log_sum_exp_batch(terminal_var)
 

@@ -187,8 +187,8 @@ for epoch in range(epoch_num):
 
     for batch in train_D:
         batch_idx += 1
-        # if batch_idx > 1:
-        #     break
+        if batch_idx > 1:
+            break
 
         batch = tuple(t.to(device) if i<len(batch)-1 else t for i,t in enumerate(batch))
         X, S, X_MASK, X_SEG,X_Len = batch
