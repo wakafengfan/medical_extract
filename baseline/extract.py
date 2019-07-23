@@ -143,7 +143,7 @@ optimizer = BertAdam(optimizer_grouped_parameters,
                      t_total=num_train_optimization_steps)
 
 
-zy = {i:np.log(trans[i]) for i in trans}
+zy = {i:trans[i] for i in trans}
 
 def viterbi(nodes):
     paths = nodes[0]
@@ -168,8 +168,10 @@ def extract_items(text_in):
 
     with torch.no_grad():
         _k = subject_model(_X, _X_SEG, _X_MASK)
+        _k = torch.softmax(_k, dim=-1)
         _k = _k[0, :].detach().cpu().numpy()
-    nodes = [dict(zip(list(map(str, range(9))), k)) for k in np.log(_k)]
+
+    nodes = [dict(zip(list(map(str, range(9))), k)) for k in _k]
     tags = viterbi(nodes)
     result = []
     for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
@@ -190,7 +192,7 @@ for epoch in range(epoch_num):
 
     for batch in train_D:
         batch_idx += 1
-        # if batch_idx > 1:
+        # if batch_idx > 2:
         #     break
 
         batch = tuple(t.to(device) for t in batch)

@@ -25,7 +25,7 @@ class SubjectModel(BertPreTrainedModel):
 
     def forward(self, x_ids, x_segments, x_mask):
         x1_encoder_layers, _ = self.bert(x_ids, x_segments, x_mask, output_all_encoded_layers=False)
-        ps = F.softmax(self.linear(x1_encoder_layers), dim=-1)
+        ps = self.linear(x1_encoder_layers)
 
         return ps
 

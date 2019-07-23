@@ -12,7 +12,7 @@ from pytorch_pretrained_bert import BertAdam, BertConfig
 from tqdm import tqdm
 
 from baseline import device
-from configuration.dic import tag_dictionary, trans, trans_list
+from configuration.dic import tag_dictionary, trans, trans_list, tag_dictionary_start, tag_dictionary_stop
 from configuration.config import data_dir, bert_vocab_path, bert_data_path, bert_model_path
 from baseline_3.model_zoo_3 import SubjectModel
 
@@ -87,25 +87,28 @@ class data_generator:
     def __iter__(self):
         idxs = list(range(len(self.data)))
         np.random.shuffle(idxs)
-        X, S, X_MASK = [], [], []
+        X, S1, S2, X_MASK = [], [], [],[]
         for i in idxs:
             text, label = self.data[i]
 
             x = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in text]
             x_mask = [1] * len(x)
-            s = [tag_dictionary[l] for l in label]
+            s1 = [tag_dictionary_start[l] if 'B' in l else 0 for l in label]
+            s2 = [tag_dictionary_stop[l] if 'I' in l else 0 for l in label]
 
             X.append(x)
-            S.append(s)
+            S1.append(s1)
+            S2.append(s2)
             X_MASK.append(x_mask)
             if len(X) == self.batch_size or i == idxs[-1]:
                 X = torch.tensor(seq_padding(X), dtype=torch.long)
-                S = torch.tensor(seq_padding(S), dtype=torch.long)
+                S1 = torch.tensor(seq_padding(S1), dtype=torch.long)
+                S2 = torch.tensor(seq_padding(S2), dtype=torch.long)
                 X_MASK = torch.tensor(seq_padding(X_MASK), dtype=torch.long)
                 X_SEG = torch.zeros(*X.size(), dtype=torch.long)
 
-                yield [X, S, X_MASK, X_SEG]
-                X, S, X_MASK = [], [], []
+                yield [X, S1,S2, X_MASK, X_SEG]
+                X, S1,S2, X_MASK = [], [], [],[]
 
 
 
@@ -122,7 +125,7 @@ if n_gpu > 1:
     subject_model = torch.nn.DataParallel(subject_model)
 
 # loss
-loss_func = nn.CrossEntropyLoss(ignore_index=0)
+loss_func = nn.CrossEntropyLoss()
 
 # optim
 param_optimizer = list(subject_model.named_parameters())
@@ -167,8 +170,12 @@ def extract_items(text_in):
     _X_SEG = torch.zeros(*_X.size(), dtype=torch.long, device=device)
 
     with torch.no_grad():
-        _k = subject_model(_X, _X_SEG, _X_MASK)
-        _k = _k[0, :].detach().cpu().numpy()
+        _k1,_k2 = subject_model(_X, _X_SEG, _X_MASK)
+        _k1 = _k1[0, :].detach().cpu().numpy()
+        _k2 = _k2[0, :].detach().cpu().numpy()
+
+
+
     nodes = [dict(zip(list(map(str, range(9))), k)) for k in np.log(_k)]
     tags = viterbi(nodes)
     result = []
@@ -194,10 +201,15 @@ for epoch in range(epoch_num):
         #     break
 
         batch = tuple(t.to(device) for t in batch)
-        X, S, X_MASK, X_SEG = batch
-        pred_s = subject_model(X, X_SEG, X_MASK)
+        X, S1,S2, X_MASK, X_SEG = batch
+        pred_s1, pred_s2 = subject_model(X, X_SEG, X_MASK)
 
-        loss = loss_func(pred_s.view(-1, num_class), S.view(-1))
+        active_loss = X_MASK.view(-1) == 1
+
+        loss1 = loss_func(pred_s1.view(-1, num_class)[active_loss], S1.view(-1)[active_loss])
+        loss2 = loss_func(pred_s2.view(-1, num_class)[active_loss], S2.view(-1)[active_loss])
+
+        loss = loss1 + loss2
         if n_gpu > 1:
             loss = loss.mean()
 
