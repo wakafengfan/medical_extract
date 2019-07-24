@@ -1,4 +1,3 @@
-import collections
 import json
 import logging
 import re
@@ -8,13 +7,13 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
-from pytorch_pretrained_bert import BertAdam, BertConfig
-from tqdm import tqdm
+from pytorch_pretrained_bert import BertAdam
 
 from baseline import device
-from configuration.dic import tag_dictionary, trans, trans_list
-from configuration.config import data_dir, bert_vocab_path, bert_data_path, bert_model_path
 from baseline.model_zoo import SubjectModel
+from baseline.vocab import bert_vocab
+from configuration.config import data_dir, bert_data_path, bert_model_path
+from configuration.dic import tag_dictionary, trans, trans_list
 
 hidden_size = 768
 epoch_num = 10
@@ -29,24 +28,6 @@ logger = logging.getLogger(__name__)
 train_data = json.load((Path(data_dir)/'train.json').open())
 train_data  = train_data * 10
 dev_data = json.load((Path(data_dir)/'dev.json').open())
-
-
-def load_vocab(vocab_file):
-    """Loads a vocabulary file into a dictionary."""
-    vocab = collections.OrderedDict()
-    index = 0
-    with open(vocab_file, "r", encoding="utf-8") as reader:
-        while True:
-            token = reader.readline()
-            if not token:
-                break
-            token = token.strip()
-            vocab[token] = index
-            index += 1
-    return vocab
-
-
-bert_vocab = load_vocab(bert_vocab_path)
 
 
 def seq_padding(X):
