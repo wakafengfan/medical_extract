@@ -73,7 +73,7 @@ for eval_idx, d in enumerate(dev_data):
         R.append((r, str(ts.start()), trans_list[int(ts.group()[0])].split('_')[-1]))
 
     R = set(R)
-    T = set(mention)
+    T = set(tuple(m) for m in mention)
 
     A += len(R & T)
     B += len(R)
@@ -88,7 +88,7 @@ for eval_idx, d in enumerate(dev_data):
 
 f1, precision, recall = 2 * A / (B + C), A / B, A / C
 logger.info(f'precision:{A / B:.5f} - recall:{A / C:.5f} - f1:{2 * A / (B + C):.5f}')
-
+json.dump(err_dict, Path('err_log_tst__[el_pt_subject.py].json').open('w'), ensure_ascii=False, indent=4)
 
 
 
