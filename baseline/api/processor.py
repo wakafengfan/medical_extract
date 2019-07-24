@@ -4,13 +4,13 @@ from pathlib import Path
 import torch
 from pytorch_pretrained_bert import BertConfig
 
-from baseline import device
 from baseline.model_zoo import SubjectModel
 from baseline.vocab import bert_vocab
 from configuration.config import data_dir
 import numpy as np
 
 from configuration.dic import trans, trans_list
+device = torch.device('cpu')
 
 config_path = Path(data_dir)/'subject_model_config.json'
 model_path = Path(data_dir)/'subject_model.pt'
@@ -36,7 +36,7 @@ class ExtractProcessor:
     def __init__(self):
         config = BertConfig(str(config_path))
         self.model = SubjectModel(config)
-        self.model.load_state_dict(state_dict=torch.load(model_path, map_location='cpu' if not torch.cuda.is_available() else None))
+        self.model.load_state_dict(state_dict=torch.load(model_path, map_location='cpu'))
         self.bert_vocab = bert_vocab
         self.model.eval()
 

@@ -41,7 +41,7 @@ def viterbi(nodes):
 
 config = BertConfig(str(config_path))
 model = SubjectModel(config)
-model.load_state_dict(state_dict=torch.load(model_path, map_location='cpu'))
+model.load_state_dict(state_dict=torch.load(model_path, map_location='cpu'if not torch.cuda.is_available() else None))
 bert_vocab = bert_vocab
 model.eval()
 
