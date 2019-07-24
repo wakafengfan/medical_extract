@@ -42,8 +42,10 @@ def viterbi(nodes):
 config = BertConfig(str(config_path))
 model = SubjectModel(config)
 model.load_state_dict(state_dict=torch.load(model_path, map_location='cpu'if not torch.cuda.is_available() else None))
-bert_vocab = bert_vocab
+model.to(device)
 model.eval()
+
+bert_vocab = bert_vocab
 
 dev_data = json.load((Path(data_dir)/'ner_v2.json').open())
 A, B, C = 1e-10, 1e-10, 1e-10
