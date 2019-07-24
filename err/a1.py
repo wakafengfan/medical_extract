@@ -45,15 +45,31 @@ for l in dev:
     D.append({'text': ''.join(tt), 'mention': sorted(mention, key=lambda x: int(x[1]))})
 
 
-json.dump(T, (Path(data_dir)/'train_1.json').open('w'), ensure_ascii=False, indent=4)
-json.dump(D, (Path(data_dir)/'dev_1.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(T, (Path(data_dir)/'train_1.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(D, (Path(data_dir)/'dev_1.json').open('w'), ensure_ascii=False, indent=4)
 
 W = []
 for l in (Path(data_dir)/'ner_2w_checked.txt').open():
     text, label = l.strip().split('\t')
     label = label.replace('ner_label:', '').split('&&')
-    W.extend([s.split('@@')[1] for s in label if len(s.split('@@')) == 2 and s.split('@@')[0] in ['disease','drug',
-                                                                                                  'diagnosis','symptom']])
+    mention = []
+    for s in label:
+        if len(s.split('@@')) == 2 and s.split('@@')[0] in ['disease', 'drug', 'diagnosis', 'symptom']:
+            e_n, e = s.split('@@')
+            if e not in text:
+                continue
+            offset = text.index(e)
+            mention.append((e, str(offset), e_n))
+    if len(mention) == 0:
+        print('8' * 20)
+        continue
+    W.append({'text': text, 'mention': sorted(mention, key=lambda x: int(x[1]))})
+
+json.dump(W, (Path(data_dir)/'ner_v2.json').open('w'), ensure_ascii=False, indent=4)
+print(f'W size: {len(W)}')  # 19974
+    # W.extend([s.split('@@')[1] for s in label if len(s.split('@@')) == 2 and s.split('@@')[0] in ['disease','drug',
+    #                                                                                               'diagnosis','symptom']])
+
 
 
 
