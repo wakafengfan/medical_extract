@@ -62,11 +62,15 @@ for eval_idx, d in enumerate(dev_data):
     x_seg = torch.zeros(*x_ids.size(), dtype=torch.long, device=device)
 
     with torch.no_grad():
-        k = model(x_ids, x_mask, x_seg)
-        k = torch.softmax(k, dim=-1)
-        k = k[0,:].detach().cpu().numpy()
+        try:
 
-    nodes = [dict(zip(map(str, range(9)), _k)) for _k in k]
+            k = model(x_ids, x_mask, x_seg)
+            k = torch.softmax(k, dim=-1)
+            kk = k[0,:].detach().cpu().numpy()
+        except Exception:
+            print(f'text: {text}, k:{k}')
+
+    nodes = [dict(zip(map(str, range(9)), _k)) for _k in kk]
     tags = viterbi(nodes)
     R = []
     for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
