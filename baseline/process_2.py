@@ -1,7 +1,6 @@
-import collections
 import json
 from pathlib import Path
-import numpy as np
+
 from configuration.config import data_dir
 
 train = [l.strip().split('\t') for l in (Path(data_dir)/'train.txt').open() if len(l.split('\t')) == 2]
@@ -19,17 +18,17 @@ for l in train:
     ll = ll.replace('ner_label:', '').split('&&')
     for tag in ll:
         e_n, e = tag.split('@@')
-        if e not in tt:
+        if e not in tt or e_n not in ['disease','drug','symptom','diagnosis']:
             continue
         offset = tt.index(e)
         label_new[offset] = 'B_' + e_n
-        label_new[offset+1: offset+len(e)] = ['I_' + e_n] * len(e)
+        label_new[offset+1: offset+len(e)] = ['I_' + e_n] * (len(e)-1)
         
-        train_new.append((text_new, label_new))
+    train_new.append((text_new, label_new))
         
 text_new, label_new = zip(*train_new)
-label_copy = label_new.copy()
-text_copy = text_new.copy()
+label_copy = list(label_new).copy()
+text_copy = list(text_new).copy()
 
 for tt, ll in zip(text_new, label_new):
 
@@ -75,14 +74,14 @@ for l in test:
     ll = ll.replace('ner_label:', '').split('&&')
     for tag in ll:
         e_n, e = tag.split('@@')
-        if e not in tt:
+        if e not in tt or e_n not in ['disease','drug','symptom','diagnosis']:
             continue
         offset = tt.index(e)
         label_new[offset] = 'B_' + e_n
-        label_new[offset + 1: offset + len(e)] = ['I_' + e_n] * len(e)
+        label_new[offset + 1: offset + len(e)] = ['I_' + e_n] * (len(e)-1)
 
-        test_new.append((text_new, label_new))
+    test_new.append((text_new, label_new))
 
 
-# json.dump(test, (Path(data_dir)/'test_0724.json').open('w'), ensure_ascii=False, indent=4)
-# json.dump(train, (Path(data_dir)/'train_0724.json').open('w'), ensure_ascii=False, indent=4)
+json.dump(test_new, (Path(data_dir)/'test_0724.json').open('w'), ensure_ascii=False, indent=4)
+json.dump(train_new_new, (Path(data_dir)/'train_0724.json').open('w'), ensure_ascii=False, indent=4)

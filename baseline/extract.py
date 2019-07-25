@@ -25,9 +25,9 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-train_data = json.load((Path(data_dir)/'train.json').open())
+train_data = json.load((Path(data_dir)/'train_0724.json').open())
 train_data  = train_data * 10
-dev_data = json.load((Path(data_dir)/'dev.json').open())
+dev_data = json.load((Path(data_dir)/'test_0724.json').open())
 
 
 def seq_padding(X):
@@ -173,7 +173,7 @@ for epoch in range(epoch_num):
 
     for batch in train_D:
         batch_idx += 1
-        # if batch_idx > 2:
+        # if batch_idx > 1:
         #     break
 
         batch = tuple(t.to(device) for t in batch)
@@ -199,7 +199,7 @@ for epoch in range(epoch_num):
     err_dict = defaultdict(list)
     for eval_idx, d in enumerate(dev_data):
         tt, ll = d
-        R = extract_items(tt)  # set(('高血压','0'))
+        R = extract_items(tt)
 
         T = []
         B_idx = [i for i, l in enumerate(ll) if 'B' in l]
