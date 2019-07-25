@@ -223,7 +223,6 @@ for epoch in range(epoch_num):
 
         if R != T:
             err_dict['err'].append({'text': ''.join(tt),
-                                    'tags': ll,
                                     'mention_data': list(T),
                                     'predict': list(R)})
         if eval_idx % 100 == 0:
