@@ -82,6 +82,6 @@ for l in test:
 
     test_new.append((text_new, label_new))
 
-
-json.dump(test_new, (Path(data_dir)/'test_0724.json').open('w'), ensure_ascii=False, indent=4)
-json.dump(train_new_new, (Path(data_dir)/'train_0724.json').open('w'), ensure_ascii=False, indent=4)
+print('Done')
+# json.dump(test_new, (Path(data_dir)/'test_0724.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(train_new_new, (Path(data_dir)/'train_0724.json').open('w'), ensure_ascii=False, indent=4)

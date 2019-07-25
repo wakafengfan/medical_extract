@@ -25,7 +25,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-train_data = json.load((Path(data_dir)/'train_0724.json').open())
+train_data = json.load((Path(data_dir)/'train_filter_test.json').open())
 train_data  = train_data * 10
 dev_data = json.load((Path(data_dir)/'test_0724.json').open())
 
@@ -234,7 +234,7 @@ for epoch in range(epoch_num):
         best_score = f1
         best_epoch = epoch
 
-        json.dump(err_dict, Path('err_log_dev__[extract.py].json').open('w'), ensure_ascii=False)
+        json.dump(err_dict, Path('err_log_dev__[extract.py].json').open('w'), ensure_ascii=False, indent=4)
 
         s_model_to_save = subject_model.module if hasattr(subject_model, 'module') else subject_model
         torch.save(s_model_to_save.state_dict(), 'subject_model.pt')
