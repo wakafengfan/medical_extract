@@ -57,6 +57,9 @@ for eval_idx, d in enumerate(dev_data):
     text = d['text']
     mention = d['mention']
 
+    if len(text) > 500:
+        continue
+
     x_ids = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in text]
     x_mask = [1] * len(x_ids)
 
