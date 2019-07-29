@@ -20,8 +20,9 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-config_path = Path(data_dir)/'subject_model_config.json'
-model_path = Path(data_dir)/'subject_model.pt'
+model_dir = 'model_1'
+config_path = Path(data_dir)/model_dir/'subject_model_config.json'
+model_path = Path(data_dir)/model_dir/'subject_model.pt'
 
 zy = {i:trans[i] for i in trans}
 
@@ -49,6 +50,8 @@ bert_vocab = bert_vocab
 
 dev_data = json.load((Path(data_dir)/'ner_v2.json').open())
 A, B, C = 1e-10, 1e-10, 1e-10
+cat_dict = defaultdict(lambda: 1e-10)
+
 err_dict = defaultdict(list)
 for eval_idx, d in enumerate(dev_data):
     text = d['text']
@@ -68,7 +71,7 @@ for eval_idx, d in enumerate(dev_data):
             k = torch.softmax(k, dim=-1)
             kk = k[0,:].detach().cpu().numpy()
         except Exception:
-            print(f'text: {text}, k:{k}')
+            pass
 
     nodes = [dict(zip(map(str, range(9)), _k)) for _k in kk]
     tags = viterbi(nodes)
@@ -85,12 +88,25 @@ for eval_idx, d in enumerate(dev_data):
     B += len(R)
     C += len(T)
 
+    for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+        R_ = set(r for r in R if r[2] == cat)
+        T_ = set(t for t in T if t[2] == cat)
+        cat_dict[f'{cat}_A'] += len(R_ & T_)
+        cat_dict[f'{cat}_B'] += len(R_)
+        cat_dict[f'{cat}_C'] += len(T_)
+
     if R != T:
         err_dict['err'].append({'text': text,
                                 'mention_data': list(T),
                                 'predict': list(R)})
     if eval_idx % 100 == 0:
         logger.info(f'eval_idx:{eval_idx} - precision:{A / B:.5f} - recall:{A / C:.5f} - f1:{2 * A / (B + C):.5f}')
+        for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+            logger.info(f'cate:{cat} - '
+                        f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
+                        f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
+                        f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
+        logger.info(f'\n')
 
 f1, precision, recall = 2 * A / (B + C), A / B, A / C
 logger.info(f'precision:{A / B:.5f} - recall:{A / C:.5f} - f1:{2 * A / (B + C):.5f}')

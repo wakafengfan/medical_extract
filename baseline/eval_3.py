@@ -20,7 +20,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-model_dir = 'model_3_train_dev'
+model_dir = 'model_1'
 
 config_path = Path(data_dir)/model_dir/'subject_model_config.json'
 model_path = Path(data_dir)/model_dir/'subject_model.pt'
@@ -96,6 +96,10 @@ for eval_idx, d in enumerate(dev_data):
         r = text[ts.start(): ts.end()]
         r = ''.join(r)
         offset = ts.start()
+        cate = trans_list[int(ts.group()[0])].split('_')[-1]
+
+        # if cate == 'diagnosis' and r.endswith('术后'):
+        #     r = r[:-1]
 
         #####################
         # if ts.start() > 0 and any(text[ts.start()-1]==a for a in ['右', '左']):
@@ -107,7 +111,7 @@ for eval_idx, d in enumerate(dev_data):
         #####################
 
 
-        R.append((r, str(offset), trans_list[int(ts.group()[0])].split('_')[-1]))
+        R.append((r, str(offset), cate))
         # R.append((r, str(offset)))
 
 

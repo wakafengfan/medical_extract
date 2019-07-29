@@ -18,7 +18,7 @@ for l in train:
 print(f'train: {len(train)}, train_copy: {len(train_copy)}')
 print(f'train_set: {len(set(train))}, train_copy set: {len(set(train_copy))}')
 print('Done')
-json.dump(list(set(train_copy)), (Path(data_dir)/'train_filter_test.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(list(set(train_copy)), (Path(data_dir)/'train_filter_test.json').open('w'), ensure_ascii=False, indent=4)
 
 #train: 17546, train_copy: 17085
 #train_set: 14049, train_copy set: 13605
@@ -39,7 +39,7 @@ for l in dev:
 print(f'dev: {len(dev)}, dev_copy: {len(dev_copy)}')
 print(f'dev_set: {len(set(dev))}, dev_copy set: {len(set(dev_copy))}')
 print('Done')
-json.dump(list(set(train_copy+dev_copy)), (Path(data_dir)/'train_dev_filter_test.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(list(set(train_copy+dev_copy)), (Path(data_dir)/'train_dev_filter_test.json').open('w'), ensure_ascii=False, indent=4)
 
 
 train_0724 = [(tuple(l[0]), tuple(l[1])) for l in json.load((Path(data_dir)/'train_0724.json').open())]
@@ -58,7 +58,7 @@ for l in train_0724:
 print(f'train_0724: {len(train_0724)}, train_0724_copy: {len(train_0724_copy)}')
 print(f'train_0724_set: {len(set(train_0724))}, train_0724_copy set: {len(set(train_0724_copy))}')
 
-json.dump(list(set(train_copy+dev_copy+train_0724_copy)), (Path(data_dir)/'train_dev_train0724_filter_test.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(list(set(train_copy+dev_copy+train_0724_copy)), (Path(data_dir)/'train_dev_train0724_filter_test.json').open('w'), ensure_ascii=False, indent=4)
 
 
 # train: 17546, train_copy: 17302

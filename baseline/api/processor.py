@@ -12,8 +12,8 @@ import numpy as np
 from configuration.dic import trans, trans_list
 device = torch.device('cpu')
 
-config_path = Path(data_dir)/''/'subject_model_config.json'
-model_path = Path(data_dir)/'subject_model.pt'
+config_path = Path(data_dir)/'model_1'/'subject_model_config.json'
+model_path = Path(data_dir)/'model_1'/'subject_model.pt'
 
 zy = {i:trans[i] for i in trans}
 
