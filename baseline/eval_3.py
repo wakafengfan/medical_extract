@@ -20,7 +20,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-model_dir = 'model_3_train_dev_train0724'
+model_dir = 'model_4_train_dev_train0729'
 
 config_path = Path(data_dir)/model_dir/'subject_model_config.json'
 model_path = Path(data_dir)/model_dir/'subject_model.pt'
@@ -49,7 +49,7 @@ model.eval()
 
 bert_vocab = bert_vocab
 
-dev_data = json.load((Path(data_dir)/'test_0724.json').open())
+dev_data = json.load((Path(data_dir)/'test_0729.json').open())
 A, B, C = 1e-10, 1e-10, 1e-10
 err_dict = defaultdict(list)
 
@@ -137,6 +137,12 @@ for eval_idx, d in enumerate(dev_data):
                                 'predict': list(R)})
     if eval_idx % 100 == 0:
         logger.info(f'eval_idx:{eval_idx} - precision:{A / B:.5f} - recall:{A / C:.5f} - f1:{2 * A / (B + C):.5f}')
+        for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+            logger.info(f'cate:{cat} - '
+                        f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
+                        f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
+                        f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
+        logger.info(f'\n')
 
 f1, precision, recall = 2 * A / (B + C), A / B, A / C
 logger.info(f'precision:{A / B:.5f} - recall:{A / C:.5f} - f1:{2 * A / (B + C):.5f}')
