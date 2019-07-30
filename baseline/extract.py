@@ -25,8 +25,10 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-train_data = json.load((Path(data_dir)/'train_dev_train0729_filter_test.json').open())
-train_data  = train_data * 10
+train_data = json.load((Path(data_dir)/'train_0729.json').open())
+train_data += json.load((Path(data_dir)/'train_ccks2017.json').open())
+train_data += json.load((Path(data_dir)/'train_ccks2019.json').open())
+train_data = train_data * 10
 dev_data = json.load((Path(data_dir)/'test_0729.json').open())
 
 
