@@ -320,10 +320,10 @@ for epoch in range(epoch_num):
 
         json.dump(err_dict, Path('err_log_dev_2__[extract_2w.py].json').open('w'), ensure_ascii=False, indent=4)
 
-        s_model_to_save = subject_model.module if hasattr(subject_model, 'module') else subject_model
-        torch.save(s_model_to_save.state_dict(), 'subject_model.pt')
-
-        Path('subject_model_config.json').open('w').write(s_model_to_save.config.to_json_string())
+        # s_model_to_save = subject_model.module if hasattr(subject_model, 'module') else subject_model
+        # torch.save(s_model_to_save.state_dict(), 'subject_model.pt')
+        #
+        # Path('subject_model_config.json').open('w').write(s_model_to_save.config.to_json_string())
 
     logger.info(
         f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score:.4f} - best epoch:{best_epoch}')
