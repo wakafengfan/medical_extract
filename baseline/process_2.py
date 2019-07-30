@@ -3,8 +3,14 @@ from pathlib import Path
 
 from configuration.config import data_dir
 
-train = [l.strip().split('\t') for l in (Path(data_dir)/'train_0729.txt').open() if len(l.split('\t')) == 2]
-test = [l.strip().split('\t') for l in (Path(data_dir)/'test_0729.txt').open() if len(l.split('\t')) == 2]
+
+# process 2w
+data_2w = [l.strip().split('\t') for l in (Path(data_dir)/'ner_2w_checked.txt').open() if len(l.split('\t')) == 2]
+train = data_2w[:10000]
+test = data_2w[10000:]
+
+# train = [l.strip().split('\t') for l in (Path(data_dir)/'train_0729.txt').open() if len(l.split('\t')) == 2]
+# test = [l.strip().split('\t') for l in (Path(data_dir)/'test_0729.txt').open() if len(l.split('\t')) == 2]
 
 train_new = []
 for l in train:
@@ -83,5 +89,12 @@ for l in test:
     test_new.append((text_new, label_new))
 
 print('Done')
-json.dump(test_new, (Path(data_dir)/'test_0729.json').open('w'), ensure_ascii=False, indent=4)
-json.dump(train_new_new, (Path(data_dir)/'train_0729.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(test_new, (Path(data_dir)/'test_0729.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(train_new_new, (Path(data_dir)/'train_0729.json').open('w'), ensure_ascii=False, indent=4)
+
+# train_dev_train0729 = json.load((Path(data_dir)/'train_dev_train0729_filter_test.json').open())
+# train_new_new_new = train_new_new + train_dev_train0729
+# print(f'train_dev_train0729:{len(train_dev_train0729)}, train_new_new:{len(train_new_new)}, train_new_new_new:{len(train_new_new_new)}')
+# # train_dev_train0729:23074, train_new_new:10216, train_new_new_new:33290
+# json.dump(test_new, (Path(data_dir)/'test_2w.json').open('w'), ensure_ascii=False, indent=4)
+# json.dump(train_new_new_new, (Path(data_dir)/'train_2w.json').open('w'), ensure_ascii=False, indent=4)
