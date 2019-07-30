@@ -5,10 +5,10 @@ export PYTHONPATH="."
 export ROOT_DIR="root"
 
 
-#/root/anaconda3/envs/py36/bin/python baseline/extract.py
+/root/anaconda3/envs/py36/bin/python baseline/extract.py
 #/root/anaconda3/envs/py36/bin/python baseline_2/extract.py
 
 
 #/root/anaconda3/envs/py36/bin/python baseline/eval_3.py
 
-/root/anaconda3/envs/py36/bin/python baseline/extract_2w.py
+#/root/anaconda3/envs/py36/bin/python baseline/extract_2w.py
