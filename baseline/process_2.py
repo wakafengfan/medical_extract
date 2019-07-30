@@ -3,8 +3,8 @@ from pathlib import Path
 
 from configuration.config import data_dir
 
-train = [l.strip().split('\t') for l in (Path(data_dir)/'train.txt').open() if len(l.split('\t')) == 2]
-test = [l.strip().split('\t') for l in (Path(data_dir)/'test.txt').open() if len(l.split('\t')) == 2]
+train = [l.strip().split('\t') for l in (Path(data_dir)/'train_0729.txt').open() if len(l.split('\t')) == 2]
+test = [l.strip().split('\t') for l in (Path(data_dir)/'test_0729.txt').open() if len(l.split('\t')) == 2]
 
 train_new = []
 for l in train:
@@ -83,5 +83,5 @@ for l in test:
     test_new.append((text_new, label_new))
 
 print('Done')
-# json.dump(test_new, (Path(data_dir)/'test_0724.json').open('w'), ensure_ascii=False, indent=4)
-# json.dump(train_new_new, (Path(data_dir)/'train_0724.json').open('w'), ensure_ascii=False, indent=4)
+json.dump(test_new, (Path(data_dir)/'test_0729.json').open('w'), ensure_ascii=False, indent=4)
+json.dump(train_new_new, (Path(data_dir)/'train_0729.json').open('w'), ensure_ascii=False, indent=4)

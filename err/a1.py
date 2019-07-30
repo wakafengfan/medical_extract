@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from configuration.config import data_dir
 
-train = json.load((Path(data_dir) / 'test_0724.json').open())
+train = json.load((Path(data_dir) / 'train_dev_train0729_filter_test.json').open())
 
 T = []
 for l in train:
@@ -23,7 +23,7 @@ for l in train:
     T.append({'text': ''.join(tt), 'mention': sorted(mention, key=lambda x: int(x[1]))})
 
 # json.dump(T, (Path(data_dir)/'train_1.json').open('w'), ensure_ascii=False, indent=4)
-json.dump(T, (Path(data_dir) / 'test_0724_1.json').open('w'), ensure_ascii=False, indent=4)
+json.dump(T, (Path(data_dir) / 'train_dev_train0729_filter_test_1.json').open('w'), ensure_ascii=False, indent=4)
 
 
 def trans_dev():
