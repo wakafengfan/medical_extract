@@ -20,7 +20,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-model_dir = 'model_4_train_dev_train0729'
+model_dir = 'model_4_train_dev_train0729_x'
 
 config_path = Path(data_dir)/model_dir/'subject_model_config.json'
 model_path = Path(data_dir)/model_dir/'subject_model.pt'
@@ -113,6 +113,8 @@ for eval_idx, d in enumerate(dev_data):
 
         R.append((r, str(offset), cate))
         # R.append((r, str(offset)))
+    if '体检' in text:
+        R.append(('体检',str(text.index('体检')),'diagnosis'))
 
 
     R = set(R)

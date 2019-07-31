@@ -28,6 +28,7 @@ def v2h(data):
 # fn = 'ner_total_99w.txt'
 # fn = 'train_ccks2019.json'
 fn = 'test_2w.json'
+fn = 'train_2w.json'
 
 j = v2h(json.load((Path(data_dir)/fn).open()))
 
