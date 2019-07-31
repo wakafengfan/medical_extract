@@ -164,8 +164,10 @@ def extract_items(text_in):
 
     return result
 
-best_score = 0
-best_epoch = 0
+best_score_1 = 0
+best_score_2 = 0
+best_epoch_1 = 0
+best_epoch_2 = 0
 train_D = data_generator(train_data)
 for epoch in range(epoch_num):
     subject_model.train()
@@ -246,9 +248,9 @@ for epoch in range(epoch_num):
             logger.info(f'\n')
 
     f1, precision, recall = 2 * A / (B + C), A / B, A / C
-    if f1 > best_score:
-        best_score = f1
-        best_epoch = epoch
+    if f1 > best_score_1:
+        best_score_1 = f1
+        best_epoch_1 = epoch
 
         json.dump(err_dict, Path('err_log_dev_1__[extract_2w.py].json').open('w'), ensure_ascii=False, indent=4)
 
@@ -258,7 +260,7 @@ for epoch in range(epoch_num):
         Path('subject_model_config.json').open('w').write(s_model_to_save.config.to_json_string())
 
     logger.info(
-        f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score:.4f} - best epoch:{best_epoch}')
+        f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score_1:.4f} - best epoch:{best_epoch_1}')
     for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
         logger.info(f'cate:{cat} - '
                     f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
@@ -315,9 +317,9 @@ for epoch in range(epoch_num):
             logger.info(f'\n')
 
     f1, precision, recall = 2 * A / (B + C), A / B, A / C
-    if f1 > best_score:
-        best_score = f1
-        best_epoch = epoch
+    if f1 > best_score_2:
+        best_score_2 = f1
+        best_epoch_2 = epoch
 
         json.dump(err_dict, Path('err_log_dev_2__[extract_2w.py].json').open('w'), ensure_ascii=False, indent=4)
 
@@ -327,7 +329,7 @@ for epoch in range(epoch_num):
         # Path('subject_model_config.json').open('w').write(s_model_to_save.config.to_json_string())
 
     logger.info(
-        f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score:.4f} - best epoch:{best_epoch}')
+        f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score_2:.4f} - best epoch:{best_epoch_2}')
     for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
         logger.info(f'cate:{cat} - '
                     f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
