@@ -142,6 +142,7 @@ def viterbi(nodes):
     return list(paths.keys())[np.argmax(list(paths.values()))]
 
 def extract_items(text_in):
+    text_in = text_in[:500]
     _X = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in text_in]
     _X_MASK = [1] * len(_X)
     _X = torch.tensor([_X], dtype=torch.long, device=device)
