@@ -1,9 +1,15 @@
 
 # -*- coding: utf-8 -*-
+import logging
 
 from flask import Flask, jsonify, request
 
 from baseline.api.processor import ExtractProcessor
+
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
+                    datefmt='%m/%d/%y %H:%M:%S',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 p = ExtractProcessor()
