@@ -20,7 +20,7 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-model_dir = 'model_4_train_dev_train0729_x'
+model_dir = 'model_4_2w'
 
 config_path = Path(data_dir)/model_dir/'subject_model_config.json'
 model_path = Path(data_dir)/model_dir/'subject_model.pt'

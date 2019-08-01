@@ -17,8 +17,11 @@ p = ExtractProcessor()
 
 @app.route('/medical_extractor', methods=['POST'])
 def returnPost():
-    print(request.get_json())
+    logger.info(request.get_json())
     text = request.json.get('text')
+    if len(text) > 500:
+        return jsonify({'error': '句长需小于512'})
+
     tags = p.process(text)
     return jsonify({'tags': tags})
 
