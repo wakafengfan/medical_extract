@@ -12,7 +12,7 @@ from pytorch_pretrained_bert import BertAdam
 from baseline import device
 from baseline.model_zoo import SubjectModel
 from baseline.vocab import bert_vocab
-from configuration.config import data_dir, bert_data_path, bert_model_path
+from configuration.config import data_dir, bert_data_path, bert_model_path, bert_wwm_ext_path
 from configuration.dic import tag_dictionary, trans, trans_list
 
 hidden_size = 768
@@ -92,7 +92,7 @@ class data_generator:
 
 
 
-subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_model_path, cache_dir=bert_data_path)
+subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_wwm_ext_path, cache_dir=bert_data_path)
 
 subject_model.to(device)
 
