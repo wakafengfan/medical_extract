@@ -13,7 +13,7 @@ from baseline.vocab import bert_vocab
 from configuration.config import data_dir
 import numpy as np
 
-from configuration.dic import trans, trans_list
+from configuration.dic import trans, tag_list
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
                     datefmt='%m/%d/%y %H:%M:%S',
@@ -82,7 +82,7 @@ for eval_idx, d in enumerate(dev_data):
     for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
         r = text[ts.start(): ts.end()]
         r = ''.join(r)
-        R.append((r, str(ts.start()), trans_list[int(ts.group()[0])].split('_')[-1]))
+        R.append((r, str(ts.start()), tag_list[int(ts.group()[0])].split('_')[-1]))
 
     R = set(R)
     T = set(tuple(m) for m in mention)

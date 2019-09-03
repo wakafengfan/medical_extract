@@ -9,7 +9,7 @@ from baseline.vocab import bert_vocab
 from configuration.config import data_dir
 import numpy as np
 
-from configuration.dic import trans, trans_list
+from configuration.dic import trans, tag_list
 device = torch.device('cpu')
 
 model_dir = 'model_4_2w'
@@ -60,7 +60,7 @@ class ExtractProcessor:
         for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
             r = text[ts.start(): ts.end()]
             r = ''.join(r)
-            result.append((r, str(ts.start()), trans_list[int(ts.group()[0])].split('_')[-1]))
+            result.append((r, str(ts.start()), tag_list[int(ts.group()[0])].split('_')[-1]))
         if '体检' in text:
             result.append(('体检', str(text.index('体检')), 'diagnosis'))
 

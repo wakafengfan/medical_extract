@@ -4,15 +4,15 @@ import torch.nn.functional as F
 from pytorch_pretrained_bert.modeling import BertPreTrainedModel, BertModel
 
 from baseline import device
-from configuration.dic import tag_dictionary, trans_list
+from configuration.dic import tag_dictionary, tag_list, tag_dictionary_2
 
 hidden_size = 768
 START_TAG: str = "<START>"
 STOP_TAG: str = "<STOP>"
-tagset_size = len(tag_dictionary)
+tagset_size = len(tag_dictionary_2)
 
-start_idx = tag_dictionary.get(START_TAG)
-stop_idx = tag_dictionary.get(STOP_TAG)
+start_idx = tag_dictionary_2.get(START_TAG)
+stop_idx = tag_dictionary_2.get(STOP_TAG)
 
 def to_scalar(var):
     return var.view(-1).detach().tolist()[0]
@@ -109,7 +109,7 @@ class SubjectModel(BertPreTrainedModel):
         for feats, length in zip(feature, lengths):
             confidences, tag_seq, scores = self.viterbi_decode(feats[:length])
 
-            tags.append([trans_list[tag] for tag in tag_seq])
+            tags.append([tag_list[tag] for tag in tag_seq])
 
             # all_tags.append([[trans_list[torch.tensor(score_id).detach().item()] for score_id, score in enumerate(score_dist)] for score_dist in scores])
 
@@ -203,7 +203,7 @@ class SubjectModel(BertPreTrainedModel):
                 1, 1, transitions.shape[2]
             )
 
-            agg_ = torch.log(torch.sum(torch.exp(tag_var), dim=2))  # [b,]
+            agg_ = torch.log(torch.sum(torch.exp(tag_var), dim=2))  # [b,tag_size]
 
             cloned = forward_var.clone()
             cloned[:, i + 1, :] = max_tag_var + agg_

@@ -13,7 +13,7 @@ from baseline.vocab import bert_vocab
 from configuration.config import data_dir
 import numpy as np
 
-from configuration.dic import trans, trans_list
+from configuration.dic import trans, tag_list
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
                     datefmt='%m/%d/%y %H:%M:%S',

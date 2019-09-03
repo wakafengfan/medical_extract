@@ -17,7 +17,27 @@ tag_dictionary = {
     # '<STOP>': 10
 }
 
-trans_list = ['O', 'B_disease', 'I_disease', 'B_diagnosis', 'I_diagnosis', 'B_symptom', 'I_symptom', 'B_drug', 'I_drug']
+
+tag_dictionary_2 = {
+    'O': 0,
+
+    'B_disease': 1,
+    'I_disease': 2,
+
+    'B_diagnosis': 3,
+    'I_diagnosis': 4,
+
+    'B_symptom': 5,
+    'I_symptom': 6,
+
+    'B_drug': 7,
+    'I_drug': 8,
+
+    '<START>': 9,
+    '<STOP>': 10
+}
+
+tag_list = ['O', 'B_disease', 'I_disease', 'B_diagnosis', 'I_diagnosis', 'B_symptom', 'I_symptom', 'B_drug', 'I_drug']
 
 sub_dic = {
     'O': 'O',

@@ -13,7 +13,7 @@ from baseline import device
 from baseline.model_zoo import SubjectModel
 from baseline.vocab import bert_vocab
 from configuration.config import data_dir, bert_data_path, bert_model_path
-from configuration.dic import tag_dictionary, trans, trans_list
+from configuration.dic import tag_dictionary, trans, tag_list
 
 hidden_size = 768
 epoch_num = 10
@@ -160,7 +160,7 @@ def extract_items(text_in):
     for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
         r = text_in[ts.start(): ts.end()]
         r = ''.join(r)
-        result.append((r, str(ts.start()), trans_list[int(ts.group()[0])].split('_')[-1]))
+        result.append((r, str(ts.start()), tag_list[int(ts.group()[0])].split('_')[-1]))
 
     return result
 

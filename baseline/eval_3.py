@@ -13,7 +13,7 @@ from baseline.vocab import bert_vocab
 from configuration.config import data_dir
 import numpy as np
 
-from configuration.dic import trans, trans_list
+from configuration.dic import trans, tag_list
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
                     datefmt='%m/%d/%y %H:%M:%S',
@@ -96,7 +96,7 @@ for eval_idx, d in enumerate(dev_data):
         r = text[ts.start(): ts.end()]
         r = ''.join(r)
         offset = ts.start()
-        cate = trans_list[int(ts.group()[0])].split('_')[-1]
+        cate = tag_list[int(ts.group()[0])].split('_')[-1]
 
         # if cate == 'diagnosis' and r.endswith('术后'):
         #     r = r[:-1]

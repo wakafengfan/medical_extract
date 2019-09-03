@@ -1,20 +1,17 @@
 import collections
 import json
 import logging
-import re
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
 import torch
-import torch.nn as nn
-from pytorch_pretrained_bert import BertAdam, BertConfig
-from tqdm import tqdm
+from pytorch_pretrained_bert import BertAdam
 
 from baseline import device
-from configuration.dic import tag_dictionary, trans, trans_list
+from baseline_3.model_zoo_3 import SubjectModel
 from configuration.config import data_dir, bert_vocab_path, bert_data_path, bert_model_path
-from baseline_2.model_zoo_2 import SubjectModel
+from configuration.dic import tag_dictionary
 
 hidden_size = 768
 epoch_num = 10
@@ -26,8 +23,8 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-train_data = json.load((Path(data_dir)/'train.json').open())
-dev_data = json.load((Path(data_dir)/'dev.json').open())
+train_data = json.load((Path(data_dir)/'train_0729.json').open())
+dev_data = json.load((Path(data_dir)/'test_0729.json').open())
 
 
 def seq_padding(X):
@@ -187,7 +184,7 @@ for epoch in range(epoch_num):
 
     for batch in train_D:
         batch_idx += 1
-        if batch_idx > 1:
+        if batch_idx > 3:
             break
 
         batch = tuple(t.to(device) if i<len(batch)-1 else t for i,t in enumerate(batch))
@@ -267,12 +264,12 @@ for epoch in range(epoch_num):
         best_score = f1
         best_epoch = epoch
 
-        json.dump(err_dict, (Path(data_dir) / 'err_log_dev__[extract.py].json').open('w'), ensure_ascii=False)
+        # json.dump(err_dict, (Path(data_dir) / 'err_log_dev__[extract.py].json').open('w'), ensure_ascii=False)
 
-        s_model_to_save = subject_model.module if hasattr(subject_model, 'module') else subject_model
-        torch.save(s_model_to_save.state_dict(), 'subject_model.pt')
+        # s_model_to_save = subject_model.module if hasattr(subject_model, 'module') else subject_model
+        # torch.save(s_model_to_save.state_dict(), 'subject_model.pt')
 
-        Path('subject_model_config.json').open('w').write(s_model_to_save.config.to_json_string())
+        # Path('subject_model_config.json').open('w').write(s_model_to_save.config.to_json_string())
 
     logger.info(
         f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score:.4f} - best epoch:{best_epoch}')
