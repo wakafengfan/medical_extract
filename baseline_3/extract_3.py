@@ -214,7 +214,7 @@ for epoch in range(epoch_num):
             _X_Len = torch.tensor([len(_X)], dtype=torch.long, device=device)
             _X = torch.tensor([_X], dtype=torch.long, device=device)
 
-            pred_tags = subject_model.predict(_X, _X_Len)[0]
+            pred_tags = subject_model(_X, _X_Len)[0]
             pred_tags = [tag_list[_] for _ in pred_tags]
 
         R = []
