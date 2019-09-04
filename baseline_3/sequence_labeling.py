@@ -1,11 +1,9 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pytorch_pretrained_bert.modeling import BertPreTrainedModel, BertModel
 
 from baseline_3.crf import ConditionalRandomField, allowed_transitions
 from baseline_3.utils import seq_len_to_mask
-from configuration.dic import tag_list
 
 
 class SubjectModel(BertPreTrainedModel):
@@ -25,7 +23,7 @@ class SubjectModel(BertPreTrainedModel):
 
         self.crf = ConditionalRandomField(num_classes, include_start_end_trans=True, allowed_transitions=trans)
 
-    def _forward(self, x_ids, seq_len=None, target=None, max_len=None):
+    def forward(self, x_ids, seq_len=None, target=None, max_len=None):
         feats, _ = self.bert(x_ids, output_all_encoded_layers=False)
         feats = self.fc(feats)
         feats = self.dropout(feats)
@@ -38,11 +36,6 @@ class SubjectModel(BertPreTrainedModel):
             loss = self.crf(logits, target, mask).mean()
             return loss
 
-    def forward(self, x_ids, seq_len, target, max_len):
-        return self._forward(x_ids, seq_len, target, max_len)
-
-    def predict(self, x_ids, seq_len):
-        return self._forward(x_ids, seq_len)
 
 
 
