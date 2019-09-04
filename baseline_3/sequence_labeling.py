@@ -25,12 +25,12 @@ class SubjectModel(BertPreTrainedModel):
 
         self.crf = ConditionalRandomField(num_classes, include_start_end_trans=True, allowed_transitions=trans)
 
-    def _forward(self, x_ids, seq_len=None, target=None):
+    def _forward(self, x_ids, seq_len=None, target=None, max_len=None):
         feats, _ = self.bert(x_ids, output_all_encoded_layers=False)
         feats = self.fc(feats)
         feats = self.dropout(feats)
         logits = F.log_softmax(feats, dim=-1)
-        mask = seq_len_to_mask(seq_len)
+        mask = seq_len_to_mask(seq_len, max_len=max_len)
         if target is None:
             pred, _ = self.crf.viterbi_decode(logits, mask)
             return pred
@@ -38,8 +38,8 @@ class SubjectModel(BertPreTrainedModel):
             loss = self.crf(logits, target, mask).mean()
             return loss
 
-    def forward(self, x_ids, seq_len, target):
-        return self._forward(x_ids, seq_len, target)
+    def forward(self, x_ids, seq_len, target, max_len):
+        return self._forward(x_ids, seq_len, target, max_len)
 
     def predict(self, x_ids, seq_len):
         return self._forward(x_ids, seq_len)

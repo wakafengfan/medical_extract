@@ -100,9 +100,8 @@ class data_generator:
                 Y = torch.tensor(seq_padding(Y), dtype=torch.long)
                 L = torch.tensor(L, dtype=torch.long)
 
-                logger.info(f'max len: {max(map(len, X))}')
+                yield [X, Y, L, max(map(len, X))]
 
-                yield [X, Y, L]
                 X, Y, L = [], [], []
 
 
@@ -187,8 +186,8 @@ for epoch in range(epoch_num):
 
     for batch in train_D:
         batch = tuple(t.to(device) if i<len(batch)-1 else t for i,t in enumerate(batch))
-        X, Y, L = batch
-        loss = subject_model(X, L, Y)
+        X, Y, L, max_len = batch
+        loss = subject_model(X, L, Y, max_len)
 
         if n_gpu > 1:
             loss = loss.mean()
@@ -209,6 +208,7 @@ for epoch in range(epoch_num):
         tt, ll = d
         with torch.no_grad():
             _X = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in tt]
+            max_len = len(_X)
 
             _X_Len = torch.tensor([len(_X)], dtype=torch.long, device=device)
             _X = torch.tensor([_X], dtype=torch.long, device=device)

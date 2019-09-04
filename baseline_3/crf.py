@@ -209,13 +209,13 @@ class ConditionalRandomField(nn.Module):
             alpha = alpha + self.start_scores.view(1, -1)
 
         flip_mask = mask.eq(0)
-        logger.info(f'flip_mask size: {flip_mask.size()}')
+        # logger.info(f'flip_mask size: {flip_mask.size()}')
 
         for i in range(1, seq_len):
             emit_score = logits[i].view(batch_size, 1, n_tags)
             trans_score = self.trans_m.view(1, n_tags, n_tags)
             tmp = alpha.view(batch_size, n_tags, 1) + emit_score + trans_score
-            logger.info(f'tmp size: {tmp.size()}')
+            # logger.info(f'tmp size: {tmp.size()}')
             alpha = torch.logsumexp(tmp, 1).masked_fill(flip_mask[i].view(batch_size, 1), 0) + \
                     alpha.masked_fill(mask[i].byte().view(batch_size, 1), 0)
 
