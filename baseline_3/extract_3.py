@@ -185,6 +185,7 @@ for epoch in range(epoch_num):
     dev_total_loss = 0
 
     for batch in train_D:
+        batch_idx += 1
         batch = tuple(t.to(device) if i<len(batch)-1 else t for i,t in enumerate(batch))
         X, Y, L, max_len = batch
         loss = subject_model(X, L, Y, max_len)
@@ -199,7 +200,7 @@ for epoch in range(epoch_num):
 
         tr_total_loss += loss.item()
         if batch_idx % 100 == 0:
-            logger.info(f'Epoch:{epoch} - batch:{batch_idx}/{train_D.steps} - loss: {tr_total_loss / (batch_idx+1):.8f}')
+            logger.info(f'Epoch:{epoch} - batch:{batch_idx}/{train_D.steps} - loss: {tr_total_loss / batch_idx:.8f}')
 
     subject_model.eval()
     A, B, C = 1e-10, 1e-10, 1e-10
