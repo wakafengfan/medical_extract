@@ -199,7 +199,7 @@ for epoch in range(epoch_num):
 
         tr_total_loss += loss.item()
         if batch_idx % 100 == 0:
-            logger.info(f'Epoch:{epoch} - batch:{batch_idx}/{train_D.steps} - loss: {tr_total_loss / batch_idx:.8f}')
+            logger.info(f'Epoch:{epoch} - batch:{batch_idx}/{train_D.steps} - loss: {tr_total_loss / (batch_idx+1):.8f}')
 
     subject_model.eval()
     A, B, C = 1e-10, 1e-10, 1e-10
