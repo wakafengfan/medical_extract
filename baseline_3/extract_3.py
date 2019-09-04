@@ -100,6 +100,8 @@ class data_generator:
                 Y = torch.tensor(seq_padding(Y), dtype=torch.long)
                 L = torch.tensor(L, dtype=torch.long)
 
+                logger.info(f'max len: {max(map(len, X))}')
+
                 yield [X, Y, L]
                 X, Y, L = [], [], []
 
