@@ -207,6 +207,8 @@ class ConditionalRandomField(nn.Module):
             emit_score = logits[i].view(batch_size, 1, n_tags)
             trans_score = self.trans_m.view(1, n_tags, n_tags)
             tmp = alpha.view(batch_size, n_tags, 1) + emit_score + trans_score
+            print(f'tmp size: {tmp.size()}')
+            print(f'flip_mask[{i}] size: {flip_mask[i].size()}')
             alpha = torch.logsumexp(tmp, 1).masked_fill(flip_mask[i].view(batch_size, 1), 0) + \
                     alpha.masked_fill(mask[i].byte().view(batch_size, 1), 0)
 
