@@ -184,10 +184,6 @@ for epoch in range(epoch_num):
     dev_total_loss = 0
 
     for batch in train_D:
-        batch_idx += 1
-        if batch_idx > 3:
-            break
-
         batch = tuple(t.to(device) if i<len(batch)-1 else t for i,t in enumerate(batch))
         X, Y, L = batch
         loss = subject_model(X, L, Y)
