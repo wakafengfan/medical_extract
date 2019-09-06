@@ -16,7 +16,7 @@ from configuration.dic import tag_dictionary, tag_list
 
 hidden_size = 768
 epoch_num = 10
-batch_size = 32
+batch_size = 64
 num_class = len(tag_dictionary)
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
@@ -24,8 +24,10 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-train_data = json.load((Path(data_dir)/'train_0729.json').open())
-dev_data = json.load((Path(data_dir)/'test_0729.json').open())
+train_data = json.load((Path(data_dir)/'train_2w.json').open())
+train_data  = train_data * 10
+dev_data_1 = json.load((Path(data_dir) / 'test_0729.json').open())
+dev_data_2 = json.load((Path(data_dir) / 'test_2w.json').open())
 
 
 def seq_padding(X):
@@ -205,7 +207,8 @@ for epoch in range(epoch_num):
     subject_model.eval()
     A, B, C = 1e-10, 1e-10, 1e-10
     err_dict = defaultdict(list)
-    for eval_idx, d in enumerate(dev_data):
+    cat_dict = defaultdict(lambda: 1e-10)
+    for eval_idx, d in enumerate(dev_data_1):
         tt, ll = d
         with torch.no_grad():
             _X = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in tt]
@@ -250,13 +253,25 @@ for epoch in range(epoch_num):
         B += len(R)
         C += len(T)
 
+        for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+            R_ = set(r for r in R if r[2] == cat)
+            T_ = set(t for t in T if t[2] == cat)
+            cat_dict[f'{cat}_A'] += len(R_ & T_)
+            cat_dict[f'{cat}_B'] += len(R_)
+            cat_dict[f'{cat}_C'] += len(T_)
+
         if R != T:
             err_dict['err'].append({'text': ''.join(tt),
-                                    'tags': ll,
                                     'mention_data': list(T),
                                     'predict': list(R)})
         if eval_idx % 100 == 0:
             logger.info(f'eval_idx:{eval_idx} - precision:{A/B:.5f} - recall:{A/C:.5f} - f1:{2 * A / (B + C):.5f}')
+            for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+                logger.info(f'cate:{cat} - '
+                            f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
+                            f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
+                            f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
+            logger.info(f'\n')
 
     f1, precision, recall = 2 * A / (B + C), A / B, A / C
     if f1 > best_score:
@@ -272,6 +287,12 @@ for epoch in range(epoch_num):
 
     logger.info(
         f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score:.4f} - best epoch:{best_epoch}')
+    for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+        logger.info(f'cate:{cat} - '
+                    f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
+                    f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
+                    f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
+    logger.info(f'\n')
 
 
 # config = BertConfig(str(Path(data_dir) / 'subject_model_config.json'))
