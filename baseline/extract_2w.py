@@ -325,7 +325,7 @@ for epoch in range(epoch_num):
             err_dict['err'].append({'text': ''.join(tt),
                                     'mention_data': list(T),
                                     'predict': list(R)})
-        if eval_idx % 100 == 0:
+        if eval_idx % 1000 == 0:
             logger.info(f'eval_idx:{eval_idx} - precision:{A / B:.5f} - recall:{A / C:.5f} - f1:{2 * A / (B + C):.5f}')
             for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
                 logger.info(f'cate:{cat} - '

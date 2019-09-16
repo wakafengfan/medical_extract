@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -8,41 +7,40 @@ import torch
 from pytorch_pretrained_bert import BertConfig
 
 from baseline import device
-from baseline_3.sequence_labeling import SubjectModel
 from baseline.vocab import bert_vocab
+from baseline_3.sequence_labeling import SubjectModel
 from configuration.config import data_dir
-import numpy as np
-
-from configuration.dic import trans, tag_list
+from configuration.dic import trans, tag_list, tag_dictionary
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s',
                     datefmt='%m/%d/%y %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-model_dir = 'model_4_2w'
+num_class = len(tag_dictionary)
+model_dir = 'model_crf'
 
-config_path = Path(data_dir)/model_dir/'subject_model_config.json'
+config_path = Path(data_dir)/'subject_model_config.json'
 model_path = Path(data_dir)/model_dir/'subject_model.pt'
 
 zy = {i:trans[i] for i in trans}
 
-def viterbi(nodes):
-    paths = nodes[0]
-    for l in range(1,len(nodes)):
-        paths_ = paths.copy()
-        paths = {}
-        for i in nodes[l].keys():
-            nows = {}
-            for j in paths_.keys():
-                if j[-1]+i in zy.keys():
-                    nows[j+i]= paths_[j]+nodes[l][i]+zy[j[-1]+i]
-            k = np.argmax(list(nows.values()))
-            paths[list(nows.keys())[k]] = list(nows.values())[k]
-    return list(paths.keys())[np.argmax(list(paths.values()))]
+# def viterbi(nodes):
+#     paths = nodes[0]
+#     for l in range(1,len(nodes)):
+#         paths_ = paths.copy()
+#         paths = {}
+#         for i in nodes[l].keys():
+#             nows = {}
+#             for j in paths_.keys():
+#                 if j[-1]+i in zy.keys():
+#                     nows[j+i]= paths_[j]+nodes[l][i]+zy[j[-1]+i]
+#             k = np.argmax(list(nows.values()))
+#             paths[list(nows.keys())[k]] = list(nows.values())[k]
+#     return list(paths.keys())[np.argmax(list(paths.values()))]
 
 config = BertConfig(str(config_path))
-model = SubjectModel(config)
+model = SubjectModel(config,num_classes=num_class, target_vocab=dict(zip(range(len(tag_list)), tag_list)))
 model.load_state_dict(state_dict=torch.load(model_path, map_location='cpu'if not torch.cuda.is_available() else None))
 model.to(device)
 model.eval()
@@ -72,50 +70,31 @@ for eval_idx, d in enumerate(dev_data):
         T.append((e, str(i), e_n.split('_')[-1]))
         # T.append((e, str(i)))
 
-
-    x_ids = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in text]
-    x_mask = [1] * len(x_ids)
-
-    x_ids = torch.tensor([x_ids], dtype=torch.long, device=device)
-    x_mask = torch.tensor([x_mask], dtype=torch.long, device=device)
-    x_seg = torch.zeros(*x_ids.size(), dtype=torch.long, device=device)
-
     with torch.no_grad():
-        try:
+        _X = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in text]
+        max_len = len(_X)
 
-            k = model(x_ids, x_mask, x_seg)
-            k = torch.softmax(k, dim=-1)
-            kk = k[0,:].detach().cpu().numpy()
-        except Exception:
-            print(f'text: {text}, k:{k}')
+        _X_Len = torch.tensor([len(_X)], dtype=torch.long, device=device)
+        _X = torch.tensor([_X], dtype=torch.long, device=device)
 
-    nodes = [dict(zip(map(str, range(9)), _k)) for _k in kk]
-    tags = viterbi(nodes)
+        pred_tags = model(_X, _X_Len)[0]
+        pred_tags = [tag_list[_] for _ in pred_tags]
+
     R = []
-    for ts in re.finditer('(12+)|(34+)|(56+)|(78+)', tags):
-        r = text[ts.start(): ts.end()]
-        r = ''.join(r)
-        offset = ts.start()
-        cate = tag_list[int(ts.group()[0])].split('_')[-1]
+    pred_B_idx = [i for i, l in enumerate(pred_tags) if 'B' in l]
+    for i in pred_B_idx:
+        e = text[i]
+        e_n = pred_tags[i]
+        j = i + 1
+        while j < len(pred_tags):
+            if pred_tags[j] == 'O' or 'B' in pred_tags[j]:
+                break
+            e += text[j]
+            j += 1
+        R.append((e, str(i), e_n.split('_')[-1]))
 
-        # if cate == 'diagnosis' and r.endswith('术后'):
-        #     r = r[:-1]
-
-        #####################
-        # if ts.start() > 0 and any(text[ts.start()-1]==a for a in ['右', '左']):
-        #     r = text[ts.start()-1] + r
-        #     offset -= 1
-        # if ts.start() > 1 and any(text[ts.start()-2:ts.start()]==a for a in ['右侧', '左侧']):
-        #     r = text[ts.start()-2: ts.start()] + r
-        #     offset -= 2
-        #####################
-
-
-        R.append((r, str(offset), cate))
-        # R.append((r, str(offset)))
     if '体检' in text:
         R.append(('体检',str(text.index('体检')),'diagnosis'))
-
 
     R = set(R)
     T = set(T)
@@ -130,8 +109,6 @@ for eval_idx, d in enumerate(dev_data):
         cat_dict[f'{cat}_A'] += len(R_ & T_)
         cat_dict[f'{cat}_B'] += len(R_)
         cat_dict[f'{cat}_C'] += len(T_)
-
-
 
     if R != T:
         err_dict['err'].append({'text': text,
