@@ -193,8 +193,10 @@ optimizer = BertAdam(optimizer_grouped_parameters,
 #
 #     return result
 
-best_score = 0
-best_epoch = 0
+best_score_1 = 0
+best_score_2 = 0
+best_epoch_1 = 0
+best_epoch_2 = 0
 train_D = data_generator(train_data)
 for epoch in range(epoch_num):
     subject_model.train()
@@ -221,6 +223,7 @@ for epoch in range(epoch_num):
             logger.info(f'Epoch:{epoch} - batch:{batch_idx}/{train_D.steps} - loss: {tr_total_loss / batch_idx:.8f}')
 
     subject_model.eval()
+    logger.info(f'**************** dev_1 ****************')
     A, B, C = 1e-10, 1e-10, 1e-10
     err_dict = defaultdict(list)
     cat_dict = defaultdict(lambda: 1e-10)
@@ -290,9 +293,9 @@ for epoch in range(epoch_num):
             logger.info(f'\n')
 
     f1, precision, recall = 2 * A / (B + C), A / B, A / C
-    if f1 > best_score:
-        best_score = f1
-        best_epoch = epoch
+    if f1 > best_score_1:
+        best_score_1 = f1
+        best_epoch_1 = epoch
 
         json.dump(err_dict, (Path(data_dir) / 'err_log_dev__[extract.py].json').open('w'), ensure_ascii=False)
 
@@ -302,7 +305,97 @@ for epoch in range(epoch_num):
         Path('subject_model_config.json').open('w').write(s_model_to_save.config.to_json_string())
 
     logger.info(
-        f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score:.4f} - best epoch:{best_epoch}')
+        f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score_1:.4f} - best epoch:{best_epoch_1}')
+    for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+        logger.info(f'cate:{cat} - '
+                    f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
+                    f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
+                    f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
+    logger.info(f'\n')
+
+    logger.info(f'**************** dev_2 ****************')
+    A, B, C = 1e-10, 1e-10, 1e-10
+    err_dict = defaultdict(list)
+    cat_dict = defaultdict(lambda: 1e-10)
+    for eval_idx, d in enumerate(dev_data_2):
+        tt, ll = d
+        with torch.no_grad():
+            _X = [bert_vocab.get(c, bert_vocab.get('[UNK]')) for c in tt[:512]]
+            max_len = len(_X)
+
+            _X_Len = torch.tensor([len(_X)], dtype=torch.long, device=device)
+            _X = torch.tensor([_X], dtype=torch.long, device=device)
+
+            pred_tags = subject_model(_X, _X_Len)[0]
+            pred_tags = [tag_list[_] for _ in pred_tags]
+
+        R = []
+        pred_B_idx = [i for i, l in enumerate(pred_tags) if 'B' in l]
+        for i in pred_B_idx:
+            e = tt[i]
+            e_n = pred_tags[i]
+            j = i + 1
+            while j < len(pred_tags):
+                if pred_tags[j] == 'O' or 'B' in pred_tags[j]:
+                    break
+                e += tt[j]
+                j += 1
+            R.append((e, str(i), e_n.split('_')[-1]))
+
+        T = []
+        B_idx = [i for i, l in enumerate(ll) if 'B' in l]
+        for i in B_idx:
+            e = tt[i]
+            e_n = ll[i]
+            j = i + 1
+            while j < len(ll):
+                if ll[j] == 'O' or 'B' in ll[j]:
+                    break
+                e += tt[j]
+                j += 1
+            T.append((e, str(i), e_n.split('_')[-1]))
+
+        R = set(R)
+        T = set(T)
+
+        A += len(R & T)
+        B += len(R)
+        C += len(T)
+
+        for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+            R_ = set(r for r in R if r[2] == cat)
+            T_ = set(t for t in T if t[2] == cat)
+            cat_dict[f'{cat}_A'] += len(R_ & T_)
+            cat_dict[f'{cat}_B'] += len(R_)
+            cat_dict[f'{cat}_C'] += len(T_)
+
+        if R != T:
+            err_dict['err'].append({'text': ''.join(tt),
+                                    'mention_data': list(T),
+                                    'predict': list(R)})
+        if eval_idx % 100 == 0:
+            logger.info(f'eval_idx:{eval_idx} - precision:{A / B:.5f} - recall:{A / C:.5f} - f1:{2 * A / (B + C):.5f}')
+            for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+                logger.info(f'cate:{cat} - '
+                            f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
+                            f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
+                            f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
+            logger.info(f'\n')
+
+    f1, precision, recall = 2 * A / (B + C), A / B, A / C
+    if f1 > best_score_2:
+        best_score_2 = f1
+        best_epoch_2 = epoch
+
+        json.dump(err_dict, (Path(data_dir) / 'err_log_dev__[extract.py].json').open('w'), ensure_ascii=False)
+
+        # s_model_to_save = subject_model.module if hasattr(subject_model, 'module') else subject_model
+        # torch.save(s_model_to_save.state_dict(), 'subject_model.pt')
+        #
+        # Path('subject_model_config.json').open('w').write(s_model_to_save.config.to_json_string())
+
+    logger.info(
+        f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score_2:.4f} - best epoch:{best_epoch_2}')
     for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
         logger.info(f'cate:{cat} - '
                     f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
