@@ -35,7 +35,6 @@ parser.add_argument("--batch_size", default=64, type=int, required=False)
 
 args = parser.parse_args()
 train_file = args.train_file
-test_file = args.test_file
 epoch_num = 10 if args.is_augment else args.epoch_num
 batch_size = args.batch_size
 
