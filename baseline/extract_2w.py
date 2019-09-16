@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import re
@@ -25,10 +26,28 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-train_data = json.load((Path(data_dir)/'train_2w.json').open())
-train_data  = train_data * 10
+parser = argparse.ArgumentParser()
+parser.add_argument("--train_file", default=None, type=str, required=True)
+# parser.add_argument("--test_file", default=None, type=str, required=True)
+parser.add_argument("--is_augment", default=False, type=bool, required=False)
+parser.add_argument("--epoch_num", default=20, type=int, required=False)
+parser.add_argument("--batch_size", default=64, type=int, required=False)
+
+args = parser.parse_args()
+train_file = args.train_file
+test_file = args.test_file
+epoch_num = 10 if args.is_augment else args.epoch_num
+batch_size = args.batch_size
+
+train_data = json.load((Path(data_dir)/train_file).open())
+logger.info(f'train_file: {train_file}, train data size: {len(train_data)}')
+if args.is_augment:
+    train_data  = train_data * 10
+    logger.info(f'After augment, train data size: {len(train_data)}')
 dev_data_1 = json.load((Path(data_dir) / 'test_0729.json').open())
 dev_data_2 = json.load((Path(data_dir) / 'test_2w.json').open())
+logger.info(f'dev_data_1 size: {len(dev_data_1)}, dev_data_2 size: {len(dev_data_2)}')
+
 
 
 def seq_padding(X):
@@ -92,7 +111,7 @@ class data_generator:
 
 
 
-subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_wwm_ext_path, cache_dir=bert_data_path)
+subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_model_path, cache_dir=bert_data_path)
 
 subject_model.to(device)
 
