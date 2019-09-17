@@ -14,5 +14,6 @@ bert_data_path = Path.home()/'.pytorch_pretrained_bert'
 bert_vocab_path = bert_data_path / 'bert-base-chinese-vocab.txt'
 bert_model_path = bert_data_path / 'bert-base-chinese.tar.gz'
 bert_wwm_ext_path = bert_data_path / 'bert_wwm_ext.tar.gz'
+roberta_path = bert_data_path / 'RoBERTa_zh_Large.tar.gz'
 
 tencent_w2v_path = Path.home()/'.word2vec'

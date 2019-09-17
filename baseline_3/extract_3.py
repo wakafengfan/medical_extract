@@ -12,7 +12,8 @@ from pytorch_pretrained_bert import BertAdam
 
 from baseline import device
 from baseline_3.sequence_labeling import SubjectModel
-from configuration.config import data_dir, bert_vocab_path, bert_data_path, bert_model_path
+from configuration.config import data_dir, bert_vocab_path, bert_data_path, bert_model_path, bert_wwm_ext_path, \
+    roberta_path
 from configuration.dic import tag_dictionary, tag_list
 
 hidden_size = 768
@@ -29,11 +30,20 @@ parser.add_argument("--train_file", default=None, type=str, required=True)
 parser.add_argument("--is_augment", default=False, type=bool, required=False)
 parser.add_argument("--epoch_num", default=20, type=int, required=False)
 parser.add_argument("--batch_size", default=64, type=int, required=False)
+parser.add_argument("--lm", default='bert', type=str, required=False)
 
 args = parser.parse_args()
 train_file = args.train_file
 epoch_num = 10 if args.is_augment else args.epoch_num
 batch_size = args.batch_size
+lm_model = args.lm
+
+if lm_model == 'wwm-ext':
+    lm_model_path = bert_wwm_ext_path
+elif lm_model == 'roberta':
+    lm_model_path = roberta_path
+else:
+    lm_model_path = bert_model_path
 
 train_data = json.load((Path(data_dir)/train_file).open())
 logger.info(f'train_file: {train_file}, train data size: {len(train_data)}')
@@ -122,7 +132,7 @@ class data_generator:
                 X, Y, L = [], [], []
 
 
-subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=bert_model_path,
+subject_model = SubjectModel.from_pretrained(pretrained_model_name_or_path=lm_model_path,
                                              cache_dir=bert_data_path,
                                              num_classes=num_class,
                                              target_vocab=dict(zip(range(len(tag_list)), tag_list)))
