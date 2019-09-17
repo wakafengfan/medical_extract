@@ -51,8 +51,8 @@ class ExtractProcessor:
                 j += 1
             result.append((e, str(i), e_n.split('_')[-1]))
 
-        if '体检' in text:
-            result.append(('体检', str(text.index('体检')), 'diagnosis'))
+        # if '体检' in text:
+        #     result.append(('体检', str(text.index('体检')), 'diagnosis'))
 
         return result
 
