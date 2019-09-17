@@ -235,7 +235,7 @@ for epoch in range(epoch_num):
     logger.info(f'**************** dev_1 ****************')
     A, B, C = 1e-10, 1e-10, 1e-10
     err_dict = defaultdict(list)
-    cat_dict = defaultdict(lambda: 1e-10)
+    # cat_dict = defaultdict(lambda: 1e-10)
     for eval_idx, d in enumerate(dev_data_1):
         tt, ll = d
         with torch.no_grad():
@@ -281,12 +281,12 @@ for epoch in range(epoch_num):
         B += len(R)
         C += len(T)
 
-        for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
-            R_ = set(r for r in R if r[2] == cat)
-            T_ = set(t for t in T if t[2] == cat)
-            cat_dict[f'{cat}_A'] += len(R_ & T_)
-            cat_dict[f'{cat}_B'] += len(R_)
-            cat_dict[f'{cat}_C'] += len(T_)
+        # for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+        #     R_ = set(r for r in R if r[2] == cat)
+        #     T_ = set(t for t in T if t[2] == cat)
+        #     cat_dict[f'{cat}_A'] += len(R_ & T_)
+        #     cat_dict[f'{cat}_B'] += len(R_)
+        #     cat_dict[f'{cat}_C'] += len(T_)
 
         if R != T:
             err_dict['err'].append({'text': ''.join(tt),
@@ -294,12 +294,12 @@ for epoch in range(epoch_num):
                                     'predict': list(R)})
         if eval_idx % 100 == 0 and eval_idx != 0:
             logger.info(f'eval_idx:{eval_idx} - precision:{A/B:.5f} - recall:{A/C:.5f} - f1:{2 * A / (B + C):.5f}')
-            for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
-                logger.info(f'cate:{cat} - '
-                            f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
-                            f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
-                            f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
-            logger.info(f'\n')
+            # for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+            #     logger.info(f'cate:{cat} - '
+            #                 f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
+            #                 f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
+            #                 f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
+            # logger.info(f'\n')
 
     f1, precision, recall = 2 * A / (B + C), A / B, A / C
     if f1 > best_score_1:
@@ -315,12 +315,12 @@ for epoch in range(epoch_num):
 
     logger.info(
         f'Epoch:{epoch}-precision:{precision:.4f}-recall:{recall:.4f}-f1:{f1:.4f} - best f1: {best_score_1:.4f} - best epoch:{best_epoch_1}')
-    for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
-        logger.info(f'cate:{cat} - '
-                    f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
-                    f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
-                    f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
-    logger.info(f'\n')
+    # for cat in ['disease', 'drug', 'diagnosis', 'symptom']:
+    #     logger.info(f'cate:{cat} - '
+    #                 f'precision:{cat_dict[cat + "_A"] / cat_dict[cat + "_B"]:.5f} - '
+    #                 f'recall:{cat_dict[cat + "_A"] / cat_dict[cat + "_C"]:.5f} - '
+    #                 f'f1:{2 * cat_dict[cat + "_A"] / (cat_dict[cat + "_B"] + cat_dict[cat + "_C"]):.5f}')
+    # logger.info(f'\n')
 
     # logger.info(f'**************** dev_2 ****************')
     # A, B, C = 1e-10, 1e-10, 1e-10
